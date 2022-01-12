@@ -1,0 +1,15 @@
+The KG is in RDF/OWL. The files are as follows: 
+
+UL_KB_V3_PUB.ttl -->  the graph file is self-contained. It can be installed in any triplestore and queried with SPARQL
+The two previous versions, V2 and V1 are added here for completeness
+
+KBAccess_RDF -->  is the Jupyter notebook with examples of the JSON API and the underlying SPARQL queries.  The API calls use the  ulkb_access code and 
+            the images in the directory. 
+
+ulkb_access.py --> the implementation of the JSON API (v3) 
+
+ulkb_access_v4.py --> Access for version V4. Make sure the yaml configuration file points to the right place
+
+
+Any issues or questions about the graph, contact rosariou@us.ibm.com
+

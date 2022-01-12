@@ -1,0 +1,44 @@
+# Use this config template to create your own config yaml file
+
+# Configure AMR parsing
+AMR_MODEL_CHECKPOINT_PATH: "DATA/AMR2.0/models/exp_cofill_o8.3_act-states_RoBERTa-large-top24/_act-pos-grh_vmask1_shiftpos1_ptr-lay6-h1_grh-lay123-h2-allprev_1in1out_cam-layall-h2-abuf/ep60-seed44/checkpoint_wiki.smatch_best1.pt"
+ROBERTA_CACHE_PATH: "roberta.large"
+THIRD_PARTY_PATH: 'third_party'
+use_cuda: false
+
+# Configure RDF store
+SPARQL_ENDPOINT: "http://localhost:9999/blazegraph/namespace/UL_KB_V5_PUB"
+
+# Configure VerbNet
+VERBNET_VERSION: "verbnet3.2"
+
+# whether to remove contradicting statements
+# when the time dimension is ignored.
+FILTER_INVALID_STATEMENTS: true
+
+# Configure KB source
+# Set to "rdf" if you want to query from the RDF triple store
+# KB_SOURCE: "corpus"
+KB_SOURCE: "rdf"
+
+# Configure Conda home
+CONDA_HOME: "~/anaconda3"
+
+# Configure local Stanford NLP parser (deprecated)
+# STANFORD_CORENLP_PATH: "./stanford-corenlp-full-2018-10-05"
+# STANFORD_CORENLP_PATH: null
+# STANFORD_CORENLP_HOST: "http://localhost"
+# STANFORD_CORENLP_PORT: 9000
+
+# Configure AMR parsing
+# AMR_PARSING_MODEL: "remote"
+AMR_PARSING_MODEL: "local"
+
+# Configure remote AMR parsing service
+REMOTE_AMR_HOST: "mnlp-demo.sl.cloud9.ibm.com"
+REMOTE_AMR_PORT: 59990
+
+# Configure local FLASK service
+LOCAL_SERVICE_HOST: "0.0.0.0"
+LOCAL_SERVICE_PORT: 5000
+USE_FLASK: true

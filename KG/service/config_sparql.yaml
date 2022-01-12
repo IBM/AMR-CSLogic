@@ -1,0 +1,12 @@
+# THIS IS THE CONFIGURATION NEEDED FOR THE STANDALONE UL_KG 
+
+
+
+# To run within the AMR-to-CS logic, use the project-wide config.yaml. The config.py 
+# file in this directory will attempt to read it first. 
+# Configure RDF store
+#Use this if you are going to use the server
+#SPARQL_ENDPOINT = "http://goedel.sl.cloud9.ibm.com:9999/blazegraph/namespace/UL_KB_V5"
+#Use this if you install the server locally 
+SPARQL_ENDPOINT: "http://localhost:9999/blazegraph/namespace/UL_KB_V5"
+

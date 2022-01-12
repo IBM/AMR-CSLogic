@@ -1,0 +1,24 @@
+wikipedia
+grpcio
+
+# VerbNet grouping parsing related
+beautifulsoup4
+
+# VerbNet dependencies
+appdirs==1.4.3
+beautifulsoup4==4.5.3
+bs4==0.0.1
+definitions==0.2.0
+lxml==4.6.3
+nltk==3.4.5
+numpy==1.12.1
+packaging==16.8
+pyparsing==2.2.0
+PyYAML==5.4
+requests==2.20.0
+sets==0.3.2
+six==1.10.0
+xml-diff==0.7.0
+xmldiff==0.6.10
+
+penman==1.2.0

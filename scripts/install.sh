@@ -5,10 +5,19 @@
 
 set -e
 
+echo "** ensuring latest version of pip is installed **"
 pip install --upgrade pip
-pip install -e .
 
-# Download spaCy corpus
+if [[ ${CONDA_DEFAULT_ENV:-''} != amr-verbnet ]]; then
+  echo Create and activate the amr-verbnet env
+  echo "Sorry, we can't do that for you in this script, at least, not on a Mac"
+  exit 1
+fi
+
+echo "** installing packages **"
+pip install -e . # this calls setup.py
+
+echo "** Downloading spaCy corpus **"
 python -m spacy download en
 
 # For constituency parsing
@@ -18,6 +27,6 @@ python -m spacy download en
 # Install PyTorch 1.3
 # pip install torch==1.3
 
-# Download Blazegraph for storing the KG
+echo "** Downloading Blazegraph for storing the KG **"
 mkdir -p blazegraph
 wget -O ./blazegraph/blazegraph.jar https://github.com/blazegraph/database/releases/download/BLAZEGRAPH_2_1_6_RC/blazegraph.jar

@@ -1,3 +1,4 @@
+# this is called from the main install.sh command
 from setuptools import setup, find_packages
 from setuptools.command.develop import develop
 from setuptools.command.install import install
@@ -5,7 +6,6 @@ from pip._internal.req import parse_requirements
 from subprocess import run
 
 VERSION = '0.1.0'
-
 
 def run_script(path):
     print("Running {} ...".format(path))

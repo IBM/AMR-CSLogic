@@ -1,5 +1,5 @@
 requests==2.25.1
-nltk==3.6.2
+nltk==3.6.6
 jsonlines==2.0.0
 grpcio==1.37.1
 grpcio-tools==1.37.1

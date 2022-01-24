@@ -1,6 +1,5 @@
 # project specific files
 third_party
-*blazegraph.jar
 data/
 stanford-corenlp-full-2018-10-05
 test-output
@@ -15,6 +14,9 @@ train-debug-openie/
 openie_output/
 *.props
 transition-amr-parser-0.4.2/
+
+*.ttl
+blazegraph/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

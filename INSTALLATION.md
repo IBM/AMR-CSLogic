@@ -34,7 +34,11 @@ Note that the scripts/install.sh downloads some NLTK corpora. If you already hav
 Note that we use YAML config file to set app specific parameters. To get started, create your own local config file using config_template.yaml file and customize values of different fields if needed and save with name config.yaml.
 
 ## Setup knowledge base
-(1) download the .ttl.zip file from [KG](https://github.com/IBM/AMR-CSLogic/tree/master/KG) and unzip it for uploading to Blazegraph later. As of 15th Dec, we are using UL_KB_V5_PUB.ttl.zip.
+(1) unzip .ttl.zip file from KG folder for uploading to Blazegraph later.
+
+```bash
+unzip KG/UL_KB_V5_PUB.ttl.zip
+```
 
 (2) start a database server with the command
 ```

@@ -133,7 +133,7 @@ USE_FLASK: true
 To start FLASK server, run
 
 ```bash
-export FLASK_APP=./amr_verbnet_semantics/web_app/__init__.py; python -m flask run --host=0.0.0.0 --port=5000
+export FLASK_APP=./amr_verbnet_semantics/web_app/__init__.py; export AMR_LOCAL_SERVICE_PORT=5000; python -m flask run --host=0.0.0.0 --port=5000
 ```
 
 The Flask logs indicate what URL the service is running on.

@@ -36,9 +36,5 @@ if __name__ != "__main__":
         handler.setFormatter(formatter)
     app.logger.info("Logging handler established")
 
-app.logger.info(70 * "*")
-app.logger.info("  A M R   V E R B N E T   S E R V I C E  ".center(70, "*"))
-app.logger.info(70 * "*")
-
 app.logger.info("Service inititalized!")
 

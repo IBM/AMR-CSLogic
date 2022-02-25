@@ -1,5 +1,44 @@
 # INSTALLATION: amr-verbnet-semantics
 
+# CUDA
+
+- Supported CUDA 10.2
+  - Note: `thinc` gives an error with CUDA 11.
+  - <details><summary>Install commands for CUDA 10.2 on Ubuntu 20</summary><div>
+  
+    ```bash
+    # download toolkit from https://developer.nvidia.com/cuda-10.2-download-archive
+    # download cudnn from https://developer.nvidia.com/rdp/cudnn-archive#a-collapse830-102
+    
+    # set gcc-9 priority
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 90
+    
+    # install gcc-7
+    sudo apt-get install gcc-7 g++-7
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 100
+    
+    # install cuda
+    sudo sh cuda_10.2.89_440.33.01_linux.run
+   
+    # add these paths in .bashrc
+    nano ~/.bashrc
+    # export LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH
+    # export PATH=/usr/local/cuda-10.2/bin:$PATH
+    
+    # install cudnn
+    sudo dpkg -i cudnn-local-repo-ubuntu1804-8.3.1.22_1.0-1_amd64.deb
+   
+    # check cuda version
+    nvcc --version
+     
+    # if you want to decrease the priority for gcc-7
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 70
+    ```
+    </div></details>
+
 ## Create virtual environment
 
 ```bash

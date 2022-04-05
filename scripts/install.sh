@@ -17,7 +17,7 @@ fi
 pip install numpy
 
 echo "** installing packages **"
-pip install -e . # this calls setup.py
+pip install -e .
 
 echo "** Downloading spaCy corpus **"
 python -m spacy download en

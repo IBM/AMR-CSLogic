@@ -15,8 +15,7 @@ if __name__ == "__main__":
                  'The shelf is wooden.',
                  'Now why would someone leave that there?',
                  'When you stand up, you notice a shelf.',
-                 'You bend down to tie your shoe.',
-                 'You see a yellow onion, some peanut oil, some sugar, some salt and some black pepper on the folding chair.']
+                 'You bend down to tie your shoe.']
 
     # before caching
     start = time.time()

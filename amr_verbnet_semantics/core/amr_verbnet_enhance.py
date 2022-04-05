@@ -1,10 +1,10 @@
 """
 Core functions that enhance AMR with VerbNet semantics
 """
-import os
-import json
 import argparse
 import copy
+import json
+import os
 from collections import Counter
 from pprint import pprint
 
@@ -12,26 +12,25 @@ import graphviz
 import networkx as nx
 import penman
 import requests
-from nltk import sent_tokenize
-
 from amr_verbnet_semantics.core.models import PredicateCalculus
 from amr_verbnet_semantics.core.spacy_nlp_parse import full_parsing
+from amr_verbnet_semantics.service.amr import parse_text
 from amr_verbnet_semantics.service.propbank import query_verbnet_semantic_roles
 from amr_verbnet_semantics.service.semlink import query_pb_vn_mapping
 from amr_verbnet_semantics.service.verbnet import query_semantics
-from amr_verbnet_semantics.service.amr import parse_text
 from amr_verbnet_semantics.utils.amr_util import read_amr_annotation
 from amr_verbnet_semantics.utils.format_util import to_json
 from amr_verbnet_semantics.utils.reification_util import reify_amr
 from app_config import config
+from nltk import sent_tokenize
 
 
-def ground_text_to_verbnet(text, amr=None, use_coreference=True, verbose=False):
+def ground_text_to_verbnet(text,
+                           amr=None, use_coreference=True, verbose=False):
     sentences = sent_tokenize(text)
     if verbose:
-        print("parsing ...")
-        print("\ntext:\n", text)
-        print("\nsentences:\n==>", "\n\n==>".join(sentences))
+        print("text:", text)
+        print("sentences:", sentences)
 
     parse = {"coreference": []}
     if use_coreference:
@@ -43,14 +42,14 @@ def ground_text_to_verbnet(text, amr=None, use_coreference=True, verbose=False):
     for sent in sentences:
         sent_res = dict()
 
-        if amr is None:
-            if config.USE_FLASK:
-                response = requests.get("http://{}:{}/amr_parsing".format(
+        if config.USE_FLASK:
+            response = requests.get(
+                "http://{}:{}/amr_parsing".format(
                     config.LOCAL_SERVICE_HOST, config.LOCAL_SERVICE_PORT),
-                    params={'text': sent})
-                amr = json.loads(response.text).get("result", [None])[0]
-            else:
-                amr = parse_text(sent)[0]
+                params={'text': sent})
+            amr = json.loads(response.text).get("result", [None])[0]
+        else:
+            amr = parse_text(sent)[0]
 
         if verbose:
             print("\namr:\n")
@@ -73,7 +72,7 @@ def match_semantics_by_role_set(semantics, amr_role_set, verbose=False):
     """
     This is to match the semantics from VerbNet given a role set
     inferred from AMR parse. We use matching between sets.
-    :param semantics: a dictionary with role set as key and list of semantics as values.
+    :param semantics: a dictionary with role set as key and list of semantics
     :param amr_role_set: role set inferred from AMR parse
     :param verbose:
     :return:
@@ -86,18 +85,25 @@ def match_semantics_by_role_set(semantics, amr_role_set, verbose=False):
 
     if len(raw_vn_role_sets) > 1:
         # remove common roles first
-        common_roles = set(raw_vn_role_sets[0]).intersection(*[set(s) for s in raw_vn_role_sets[1:]])
-        vn_role_sets = [set(s).difference(common_roles) for s in raw_vn_role_sets]
+        common_roles = \
+            set(raw_vn_role_sets[0]).intersection(*[set(s)
+                                                    for s
+                                                    in raw_vn_role_sets[1:]])
+        vn_role_sets = \
+            [set(s).difference(common_roles) for s in raw_vn_role_sets]
         amr_role_set = raw_amr_role_set.difference(common_roles)
         if verbose:
             print("\ncommon_roles:", common_roles)
             print("\nvn_role_sets:", vn_role_sets)
             print("\namr_role_set:", amr_role_set)
-        set_diff_sizes = [(idx, len(set(vn_role_set).symmetric_difference(amr_role_set)))
-                          for idx, vn_role_set in enumerate(vn_role_sets)]
+        set_diff_sizes = \
+            [(idx, len(set(vn_role_set).symmetric_difference(amr_role_set)))
+             for idx, vn_role_set in enumerate(vn_role_sets)]
     else:
-        set_diff_sizes = [(idx, len(set(vn_role_set).symmetric_difference(raw_amr_role_set)))
-                          for idx, vn_role_set in enumerate(raw_vn_role_sets)]
+        set_diff_sizes = \
+            [(idx,
+              len(set(vn_role_set).symmetric_difference(raw_amr_role_set)))
+             for idx, vn_role_set in enumerate(raw_vn_role_sets)]
 
     min_diff_idx = sorted(set_diff_sizes, key=lambda x: x[1])[0][0]
 
@@ -107,12 +113,14 @@ def match_semantics_by_role_set(semantics, amr_role_set, verbose=False):
         print("\nMatched semantics:")
         print(semantics[raw_vn_role_sets[min_diff_idx]])
 
-    # if multiple semantics for the role set, return the first one for the time being
-    # TODO: compare AMR parse of the example of the semantics for more accurate matching
-    return raw_vn_role_sets[min_diff_idx], semantics[raw_vn_role_sets[min_diff_idx]][0]
+    # TODO: compare AMR parse
+    return \
+        raw_vn_role_sets[min_diff_idx], \
+        semantics[raw_vn_role_sets[min_diff_idx]][0]
 
 
-def build_role_set_from_mappings(node_name, verbnet_id, arg_map, role_mappings, verbose=False):
+def build_role_set_from_mappings(node_name, verbnet_id, arg_map,
+                                 role_mappings, verbose=False):
     role_set = set()
     vn_class_name = "-".join(verbnet_id.split("-")[1:])
     for src in arg_map:
@@ -160,7 +168,8 @@ def ground_amr(amr, reify=True, verbose=False):
         node_name = inst.source
 
         # if it is a propbank frame
-        if len(inst.target) > 3 and inst.target[-3] == "-" and inst.target[-2:].isnumeric():
+        if len(inst.target) > 3 \
+                and inst.target[-3] == "-" and inst.target[-2:].isnumeric():
             pb_id = inst.target[:-3] + "." + inst.target[-2:]
             pb_id = pb_id.replace("-", "_")
             if pb_id not in role_mappings:
@@ -180,11 +189,16 @@ def ground_amr(amr, reify=True, verbose=False):
                 for mapping in mapping_res:
                     verbnet_id = mapping["mapping"]
                     verbnet_version = mapping["source"]
-                    amr_role_set = build_role_set_from_mappings(node_name, verbnet_id, arg_map[pb_id], role_mappings[pb_id])
+                    amr_role_set = \
+                        build_role_set_from_mappings(node_name, verbnet_id,
+                                                     arg_map[pb_id],
+                                                     role_mappings[pb_id])
                     # One role set might correspond to multiple set of semantics
-                    semantics_by_role_set = query_semantics(verbnet_id, verbnet_version)
-                    matched_role_set, matched_semantics = match_semantics_by_role_set(
-                        semantics_by_role_set, amr_role_set, verbose)
+                    semantics_by_role_set = \
+                        query_semantics(verbnet_id, verbnet_version)
+                    matched_role_set, matched_semantics = \
+                        match_semantics_by_role_set(
+                            semantics_by_role_set, amr_role_set, verbose)
                     if verbose:
                         print("\nsemantics_by_role_set:", semantics_by_role_set)
                         print("\nmatched_role_set:", matched_role_set)
@@ -200,9 +214,11 @@ def ground_amr(amr, reify=True, verbose=False):
 
     amr_cal = process_and_operator(raw_amr_cal)
     sem_cal = construct_calculus_from_semantics(semantics)
-    grounded_stmt = ground_semantics(arg_map, sem_cal, role_mappings,
-                                     filter_invalid_statements=config.FILTER_INVALID_STATEMENTS)
-    unique_grounded_stmt, unique_sem_cal = induce_unique_groundings(grounded_stmt, sem_cal)
+    grounded_stmt = \
+        ground_semantics(arg_map, sem_cal, role_mappings,
+                         filter_invalid_statements=config.FILTER_INVALID_STATEMENTS)
+    unique_grounded_stmt, unique_sem_cal = \
+        induce_unique_groundings(grounded_stmt, sem_cal)
 
     if verbose:
         print("\namr_cal:", amr_cal)
@@ -293,32 +309,48 @@ def ground_semantics(arg_map, semantic_calc, role_mappings,
                         for role in cur_role_mappings:
                             role_info = cur_role_mappings[role]
                             for vn_cls_info in role_info:
-                                if stmt.arguments[arg_idx].lower() == vn_cls_info["vntheta"].lower() \
-                                        or stmt.arguments[arg_idx][1:].lower() == vn_cls_info["vntheta"].lower():
+                                if stmt.arguments[arg_idx].lower() == \
+                                        vn_cls_info["vntheta"].lower() \
+                                        or \
+                                        stmt.arguments[arg_idx][1:].lower() == \
+                                        vn_cls_info["vntheta"].lower():
                                     if role not in arg_map[propbank_id][src]:
                                         continue
 
-                                    stmt.arguments[arg_idx] = arg_map[propbank_id][src][role]
-                                    if "and" in arg_map and arg_map[propbank_id][src][role] in arg_map["and"]:
-                                        op_role_dict = arg_map["and"][arg_map[propbank_id][src][role]]
-                                        for idx, op_role in enumerate(op_role_dict):
+                                    stmt.arguments[arg_idx] = \
+                                        arg_map[propbank_id][src][role]
+                                    if "and" in arg_map \
+                                            and \
+                                            arg_map[propbank_id][src][role] \
+                                            in arg_map["and"]:
+                                        op_role_dict = \
+                                            arg_map["and"][
+                                                arg_map[propbank_id][src][role]]
+                                        for idx, op_role \
+                                                in enumerate(op_role_dict):
                                             if idx == 0:
-                                                stmt.arguments[arg_idx] = op_role_dict[op_role]
+                                                stmt.arguments[arg_idx] = \
+                                                    op_role_dict[op_role]
                                             else:
                                                 stmt_copy = copy.deepcopy(stmt)
-                                                stmt_copy.arguments[arg_idx] = op_role_dict[op_role]
+                                                stmt_copy.arguments[arg_idx] = \
+                                                    op_role_dict[op_role]
                                                 to_add_stmt.append(stmt_copy)
 
                 final_calculus = []
                 for stmt in (cur_calculus + to_add_stmt):
-                    # PATH(during(E), Theme, ?Initial_Location, ?Trajectory, Destination)
                     if stmt.predicate == "PATH":
                         # LOCATION(start(E), Theme, ?Initial_Location)
                         # and LOCATION(end(E), Theme, Destination)
                         theme = stmt.arguments[1]
                         dest = stmt.arguments[4]
-                        final_calculus.append(PredicateCalculus("LOCATION", ["start(E)", theme, "?Initial_Location"]))
-                        final_calculus.append(PredicateCalculus("LOCATION", ["end(E)", theme, dest]))
+                        final_calculus.append(
+                            PredicateCalculus("LOCATION",
+                                              ["start(E)", theme,
+                                               "?Initial_Location"]))
+                        final_calculus.append(
+                            PredicateCalculus("LOCATION",
+                                              ["end(E)", theme, dest]))
                     else:
                         final_calculus.append(stmt)
 
@@ -343,12 +375,15 @@ def ground_semantics(arg_map, semantic_calc, role_mappings,
                     stmt = calc[stmt_idx]
                     for arg_idx in range(len(stmt.arguments)):
                         # Add a question mark before an unbound argument
-                        if stmt.arguments[arg_idx][0].isupper() and stmt.arguments[arg_idx] != "E":
-                            stmt.arguments[arg_idx] = "?" + stmt.arguments[arg_idx]
-                            # Add new statement replacing ?V_Final_State with propbank frame lemma
+                        if stmt.arguments[arg_idx][0].isupper() \
+                                and stmt.arguments[arg_idx] != "E":
+                            stmt.arguments[arg_idx] = \
+                                "?" + stmt.arguments[arg_idx]
+                            # Add new statement replacing ?V_Final_State
                             if stmt.arguments[arg_idx] == "?V_Final_State":
                                 new_stmt = copy.deepcopy(stmt)
-                                new_stmt.arguments[arg_idx] = pb_id.split(".")[0]
+                                new_stmt.arguments[arg_idx] = \
+                                    pb_id.split(".")[0]
                                 calc.append(new_stmt)
 
     # map reified AMR relation to VerbNet semantic predicates
@@ -412,7 +447,8 @@ def check_contradiction(statement1, statement2):
 
 def process_and_operator(amr_calc):
     """
-    Handle the situation where the "and" operator should be replaced by copies of statements
+    Handle the situation where the "and" operator
+    should be replaced by copies of statements
 
     Example:
     You see a dishwasher and a fridge .
@@ -424,13 +460,15 @@ def process_and_operator(amr_calc):
             :op2 (f / fridge)))
 
     AMR Parse in the predicate calculus form:
-    see-01(s) AND see-01.arg0(s, y) AND see-01.arg1(s, a) AND and(a) AND and.op1(a, d)
+    see-01(s) AND see-01.arg0(s, y) AND see-01.arg1(s, a)
+    AND and(a) AND and.op1(a, d)
     AND  and.op1(a, f) AND dishwasher(d) AND fridge(f)
 
     AND-operator processing:
     see-01.arg1(s, a) AND and(a) AND and.op1(a, d) AND  and.op1(a, f)
-    => see-01.arg1(s, d) AND see-01.arg1(s, f) AND see-01(s) AND see-01.arg0(s, y)
-    AND see-01.arg1(s, d) AND see-01.arg1(s, f) AND dishwasher(d) AND fridge(f)
+    => see-01.arg1(s, d) AND see-01.arg1(s, f) AND see-01(s)
+    AND see-01.arg0(s, y) AND see-01.arg1(s, d) AND see-01.arg1(s, f)
+    AND dishwasher(d) AND fridge(f)
 
     :param amr_calc:
     :return:
@@ -482,7 +520,8 @@ def construct_calculus_from_amr(amr):
             predicate = src2tgt[edge.source] + "." + edge.role[1:].lower()
         else:
             predicate = edge.role[1:].lower()
-        amr_calc.append(PredicateCalculus(predicate, [edge.source, edge.target]))
+        amr_calc.append(PredicateCalculus(
+            predicate, [edge.source, edge.target]))
         tgt = src2tgt[edge.source]
         if tgt != "and" and "-" in tgt and tgt.rindex("-") == len(tgt) - 3:
             tgt = tgt[:-3] + "." + tgt[-2:]
@@ -524,7 +563,8 @@ def build_statement_dict(statements):
 def get_statement_dict_key(stmt):
     arguments = []
     for arg in stmt["arguments"]:
-        if "(E)" in arg or (arg.startswith("e") and len(arg) == 2) or (arg.startswith("ë") and len(arg) == 2):
+        if "(E)" in arg or (arg.startswith("e") and len(arg) == 2) or \
+                (arg.startswith("ë") and len(arg) == 2):
             arguments.append(arg)
     key = (stmt["predicate"], stmt["is_negative"], tuple(arguments))
     return key
@@ -544,8 +584,13 @@ def replace_path_statement(semantic_calculus):
                 # and LOCATION(end(E), Theme, Destination)
                 theme = stmt["arguments"][1]
                 dest = stmt["arguments"][4]
-                new_semantic_calculus[pb_id].append(to_json(PredicateCalculus("LOCATION", ["start(E)", theme, "?Initial_Location"])))
-                new_semantic_calculus[pb_id].append(to_json(PredicateCalculus("LOCATION", ["end(E)", theme, dest])))
+                new_semantic_calculus[pb_id].append(
+                    to_json(PredicateCalculus("LOCATION",
+                                              ["start(E)", theme,
+                                               "?Initial_Location"])))
+                new_semantic_calculus[pb_id].append(
+                    to_json(PredicateCalculus("LOCATION",
+                                              ["end(E)", theme, dest])))
             else:
                 new_semantic_calculus[pb_id].append(stmt)
     return new_semantic_calculus
@@ -573,12 +618,14 @@ def induce_unique_groundings(grounded_stmt, semantic_calc, verbose=False):
         new_calc_pools = []
         for vn_class in grounded_stmt[pb_id]:
             for unique_stmts in stmt_pools:
-                unique_stmts[pb_id] = copy.deepcopy(grounded_stmt[pb_id][vn_class])
+                unique_stmts[pb_id] = \
+                    copy.deepcopy(grounded_stmt[pb_id][vn_class])
                 new_stmt_pools.append(copy.deepcopy(unique_stmts))
 
             for unique_calcs in calc_pools:
                 if pb_id in semantic_calc:
-                    unique_calcs[pb_id] = copy.deepcopy(semantic_calc[pb_id][vn_class])
+                    unique_calcs[pb_id] = \
+                        copy.deepcopy(semantic_calc[pb_id][vn_class])
                 else:
                     unique_calcs[pb_id] = []
                 new_calc_pools.append(copy.deepcopy(unique_calcs))
@@ -642,7 +689,8 @@ def build_graph_from_amr(amr, verbose=False):
 
         src_node_id = amr_obj["node_idx2node_id"][edge["src_node_idx"]]
         tgt_node_id = amr_obj["node_idx2node_id"][edge["tgt_node_idx"]]
-        g_directed.add_edge(src_node_id, tgt_node_id, label=":" + edge["edge_label"], source="amr")
+        g_directed.add_edge(src_node_id, tgt_node_id,
+                            label=":" + edge["edge_label"], source="amr")
 
     if verbose:
         print("\nnode_dict:", node_dict)
@@ -698,8 +746,10 @@ def build_graph_from_amr_penman(amr, verbose=False):
         if verbose:
             print("edge:", edge)
 
-        g_directed.add_edge(edge.source, edge.target, label=edge.role, source="amr")
-        g_undirected.add_edge(edge.source, edge.target, label=edge.role, source="amr")
+        g_directed.add_edge(
+            edge.source, edge.target, label=edge.role, source="amr")
+        g_undirected.add_edge(
+            edge.source, edge.target, label=edge.role, source="amr")
 
     if verbose:
         print("\nnode_dict:", node_dict)
@@ -713,12 +763,14 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
     To represent the graph of semantics, we use event as pivot, then use event
     time point (e.g. start, end, or, during) as edge to connect a predicate
     instance of a calculus statement, and attach grounded argument nodes to the
-    predicate using edges with types defined from argument roles in the semantics.
-    All predicate instances are connected to the predicate type using edges of ":type".
+    predicate using edges with types defined from argument roles
+    in the semantics. All predicate instances are connected
+    to the predicate type using edges of ":type".
 
     :param amr: amr parse in string. Set to None if not used.
-    :param grounded_stmt: grounded statements returned by the AMR-VerbNet service. Set to None if not used.
-    :param semantic_calculus: semantic calculus returned by the AMR-VerbNet service
+    :param grounded_stmt: grounded statements returned by AMR-VerbNet service.
+    Set to None if not used.
+    :param semantic_calculus: semantic calculus returned by AMR-VerbNet service
     :param verbose: if printing intermediate results
     :return: a networkx graph instance representing the enhanced AMR graph
 
@@ -791,24 +843,27 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
                 else:
                     predicate = stmt["predicate"]
 
-                # create a node for the predicate type and add edges to its instances
                 if predicate not in node_dict:
                     g.add_node(predicate, label=predicate, source="verbnet")
                     node_dict[predicate] = predicate
 
-                predicate_id = predicate + "-{}".format(pred_inst_counter[predicate])
+                predicate_id = \
+                    predicate + "-{}".format(pred_inst_counter[predicate])
                 if predicate_id not in node_dict:
-                    g.add_node(predicate_id, label=predicate + "-inst", source="verbnet")
+                    g.add_node(predicate_id,
+                               label=predicate + "-inst", source="verbnet")
                     node_dict[predicate_id] = predicate
                     pred_inst_counter[predicate] += 1
-                    g.add_edge(predicate_id, predicate, label=":type", source="verbnet")
+                    g.add_edge(predicate_id, predicate,
+                               label=":type", source="verbnet")
 
                 for arg_idx, arg in enumerate(stmt["arguments"]):
                     # check whether the argument is event-related
                     event, event_time_point = get_event_from_argument(arg)
 
                     if event is not None:
-                        event_id = event + "-{}".format(event_inst_counter[event])
+                        event_id = \
+                            event + "-{}".format(event_inst_counter[event])
                         if event_id not in node_dict:
                             g.add_node(event_id, label=event, source="verbnet")
                             node_dict[event_id] = event
@@ -816,25 +871,32 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
                                 event2id[event] = event_id
 
                         # add edge between event and predicate
-                        g.add_edge(event_id, predicate_id, label=":" + event_time_point, source="verbnet")
+                        g.add_edge(event_id, predicate_id,
+                                   label=":" + event_time_point,
+                                   source="verbnet")
                         continue
 
                     if len(arg) <= 2 and arg.startswith("E"):
                         # the arg represents an event
                         event = arg
-                        event_id = event + "-{}".format(event_inst_counter[event])
+                        event_id = \
+                            event + "-{}".format(event_inst_counter[event])
                         if event not in event2id and event_id not in node_dict:
-                            g.add_node(event_id, label=event, source="verbnet")
+                            g.add_node(event_id,
+                                       label=event, source="verbnet")
                             node_dict[event_id] = event
                             event2id[event] = event_id
-                        g.add_edge(predicate_id, event_id, label=":event", source="verbnet")
+                        g.add_edge(predicate_id, event_id,
+                                   label=":event", source="verbnet")
                     else:
-                        # handle cases where grounded statements are expanded due to the AND phrase
+                        # handle cases where grounded statements
+                        # are expanded due to the AND phrase
                         key = get_statement_dict_key(stmt)
                         if key not in semantic_calculus_dict:
                             continue
-                            
-                        label = semantic_calculus_dict[key]["arguments"][arg_idx]
+
+                        label = \
+                            semantic_calculus_dict[key]["arguments"][arg_idx]
 
                         if label == arg:
                             # indicate it is unknown
@@ -842,9 +904,11 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
                                 arg_name = "?" + arg
                             else:
                                 arg_name = arg
-                            arg_id = arg + "-{}".format(free_arg_inst_counter[arg])
+                            arg_id = \
+                                arg + "-{}".format(free_arg_inst_counter[arg])
                             if arg_id not in node_dict:
-                                g.add_node(arg_id, label=arg_name, source="verbnet")
+                                g.add_node(arg_id, label=arg_name,
+                                           source="verbnet")
                                 node_dict[arg_id] = arg_name
                         else:
                             arg_id = arg
@@ -853,7 +917,8 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
                         # remove "?" for edge labels
                         if label.startswith("?"):
                             label = label[1:]
-                        g.add_edge(predicate_id, arg_id, label=":" + label, source="verbnet")
+                        g.add_edge(predicate_id, arg_id,
+                                   label=":" + label, source="verbnet")
 
     # print("\nNodes of enhanced AMR graph:\n", g.nodes())
     # print("\nEdges of enhanced AMR graph:\n", g.edges())
@@ -863,7 +928,8 @@ def build_semantic_graph(amr, grounded_stmt=None, semantic_calculus=None,
 def visualize_semantic_graph(graph, out_dir, graph_name="semantic_graph",
                              figure_format="png"):
     """
-    Generate a figure that visualize the enhanced AMR graph with VerbNet semantics
+    Generate a figure that visualize the enhanced AMR graph
+    with VerbNet semantics
     :param graph: a networkx graph instance
     :param out_dir: the directory to save the figure
     :param graph_name: the name of the graph for specifying the file name
@@ -881,7 +947,8 @@ def visualize_semantic_graph(graph, out_dir, graph_name="semantic_graph",
     for node in graph.nodes.data():
         # print("node:", node)
         node_id, node_attrs = node
-        dot.node(node_id, label=node_attrs["label"] if "label" in node_attrs else node_id,
+        dot.node(node_id, label=node_attrs["label"] if "label" in node_attrs
+                 else node_id,
                  color=color_map[node_attrs["source"]])
 
     for edge in graph.edges().data():
@@ -899,23 +966,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--parse', type=str, default="You enter a kitchen.")
     args = parser.parse_args()
-    
+
     res = ground_text_to_verbnet(args.parse, verbose=True)
-    # res = ground_text_to_verbnet("You enter a kitchen.", verbose=True)
-    # res = ground_text_to_verbnet("You see a dishwasher and a fridge.", verbose=True)
-    # res = ground_text_to_verbnet("You put the wet hoodie on the patio chair.", verbose=True)
-    # res = ground_text_to_verbnet("You close the window .")
-    # res = ground_text_to_verbnet("Here 's a dining table .")
-    # res = ground_text_to_verbnet("They put upon me a brilliant, red helm.", verbose=True)
-    # res = ground_text_to_verbnet("You see a red apple and a dirty plate on the table .")
-    # res = ground_text_to_verbnet("On the nightstand is a clean red dress.", verbose=True)
-    # res = ground_text_to_verbnet("On the chair is a hoodie.", verbose=True)
-    # res = ground_text_to_verbnet("The bench is shaky.", verbose=True)
-    # res = ground_text_to_verbnet("The fleece jacket seems out of place here.", verbose=True)
-    # res = ground_text_to_verbnet("The court shoes appears to be well matched to everything else here.", verbose=True)
-    # res = ground_text_to_verbnet("The dresser is made out of maple carefully finished with Danish oil.", verbose=True)
-    # res = ground_text_to_verbnet("In accordance with our acceptance of funds from the U.S. Treasury, cash dividends on common stock are not permitted without prior approval from the U.S.", verbose=True)
-    # res = ground_text_to_verbnet("You can make out a green shirt.", verbose=True)
-    # res = ground_text_to_verbnet("There isn't a thing there except a fridge.", verbose=True)
-    # res = ground_text_to_verbnet("You are carrying a blue shoe, a green shirt.", verbose=True)
     print(res)

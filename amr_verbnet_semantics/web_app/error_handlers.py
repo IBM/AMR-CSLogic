@@ -11,18 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Module: error_handlers
 """
 from flask import jsonify
 
 from . import app, status
-from .models import DataValidationError
 
 
-######################################################################
+class DataValidationError(Exception):
+    """Used for an data validation errors when deserializing"""
+
+
 # Error Handlers
-######################################################################
 @app.errorhandler(DataValidationError)
 def request_validation_error(error):
     """Handles Value Errors from bad data"""
@@ -36,7 +38,8 @@ def bad_request(error):
     app.logger.warning(message)
     return (
         jsonify(
-            status=status.HTTP_400_BAD_REQUEST, error="Bad Request", message=message
+            status=status.HTTP_400_BAD_REQUEST,
+            error="Bad Request", message=message
         ),
         status.HTTP_400_BAD_REQUEST,
     )
@@ -48,7 +51,8 @@ def not_found(error):
     message = str(error)
     app.logger.warning(message)
     return (
-        jsonify(status=status.HTTP_404_NOT_FOUND, error="Not Found", message=message),
+        jsonify(status=status.HTTP_404_NOT_FOUND,
+                error="Not Found", message=message),
         status.HTTP_404_NOT_FOUND,
     )
 

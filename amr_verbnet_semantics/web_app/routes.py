@@ -20,9 +20,7 @@ from amr_verbnet_semantics.service.amr import parse_text
 from . import app, status
 
 
-######################################################################
 # GET INDEX
-######################################################################
 @app.route("/")
 def index():
     """Root URL response"""
@@ -36,9 +34,7 @@ def index():
     )
 
 
-######################################################################
 # AMR parsing
-######################################################################
 @app.route("/amr_parsing", methods=["GET"])
 def amr_parsing():
     """Returns AMR parse of input text"""
@@ -57,9 +53,7 @@ def amr_parsing():
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
-######################################################################
 # Ground text using VerbNet semantics
-######################################################################
 @app.route("/verbnet_semantics", methods=["GET"])
 def verbnet_semantics():
     """Returns VerbNet groundings of input text"""
@@ -73,7 +67,9 @@ def verbnet_semantics():
     use_coreference = request.args.get('use_coreference', default=0, type=int)
 
     app.logger.info("text:", text)
-    parse = ground_text_to_verbnet(text, use_coreference=use_coreference, verbose=True)
+    parse = ground_text_to_verbnet(text,
+                                   use_coreference=use_coreference,
+                                   verbose=False)
     results = {
         "text": text,
         "coreference": parse["coreference"],
@@ -83,9 +79,7 @@ def verbnet_semantics():
     return make_response(jsonify(results), status.HTTP_200_OK)
 
 
-######################################################################
-#  U T I L I T Y   F U N C T I O N S
-######################################################################
+#  Utility functions
 def check_content_type(media_type):
     """Checks that the media type is correct"""
     content_type = request.headers.get("Content-Type")

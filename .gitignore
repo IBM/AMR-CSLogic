@@ -1,3 +1,5 @@
+.DS_Store
+
 # project specific files
 third_party
 data/

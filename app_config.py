@@ -2,10 +2,9 @@
 Load configuration from .yaml file.
 """
 import os
+
 import yaml
-
 from amr_verbnet_semantics.utils.format_util import DictObject, to_json
-
 
 config_file_path = os.path.join(os.path.dirname(__file__), "config.yaml")
 if not os.path.exists(config_file_path):
@@ -16,8 +15,10 @@ with open(config_file_path, "r") as f:
 
 config = DictObject(config)
 
+env_port_num = os.environ.get('AMR_LOCAL_SERVICE_PORT', '')
+if env_port_num != '':
+    config.LOCAL_SERVICE_PORT = env_port_num
 
 if __name__ == "__main__":
     print(to_json(config))
     print(config.SPARQL_ENDPOINT)
-

@@ -14,6 +14,8 @@ if [[ ${CONDA_DEFAULT_ENV:-''} != amr-verbnet ]]; then
   exit 1
 fi
 
+pip install numpy
+
 echo "** installing packages **"
 pip install -e . # this calls setup.py
 

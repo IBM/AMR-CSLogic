@@ -35,7 +35,7 @@ setup(
     description='Enhancing AMR with VerbNet semantics',
     author='Zhicheng (Jason) Liang and Dr. Rosario Uceda-Sosa',
     author_email='liangz4@rpi.edu and rosariou@us.ibm.com',
-    url='https://github.com/CognitiveHorizons/AMR-CSLogic',
+    url='https://github.com/IBM/AMR-CSLogic',
     packages=find_packages(include=[
         'amr_verbnet_semantics',
         'amr_verbnet_semantics.*',

@@ -1,23 +1,27 @@
 """
 Test for services
 """
+import argparse
 import json
 from pprint import pprint
 
 import requests
 
-# host = "10.208.109.152"
-host = "0.0.0.0"
-port = 5000
+parser = argparse.ArgumentParser()
 
-text = "You enter a kitchen."
-# text = "You see a dishwasher and a fridge."
-# text = "Here 's a dining table ."
-# text = "You see a red apple and a dirty plate on the table ."
-# text = "You've entered a kitchen. You see a dishwasher and a fridge. Here's a dining table. You see a dirty plate and a red apple on the table."
+parser.add_argument('--ip', type=str, default='0.0.0.0')
+parser.add_argument('--port', type=int, default=5000)
+parser.add_argument('--text', type=str, default='You enter a kitchen.')
 
-# res = requests.get("http://{}:{}/amr_parsing".format(host, port), params={'text': text})
-res = requests.get("http://{}:{}/verbnet_semantics".format(host, port), params={'text': text})
+args = parser.parse_args()
+
+host = args.ip
+port = args.port
+
+text = args.text
+
+res = requests.get("http://{}:{}/verbnet_semantics".format(host, port),
+                   params={'text': text})
 
 print("\nres.text:")
 print(res.text)
@@ -47,4 +51,3 @@ if "amr_parse" in res:
 
         print("\ngrounded_stmt:")
         print(res["amr_parse"][i]["grounded_stmt_str"])
-
